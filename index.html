@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>寻纹觅祖 - 百家姓传统纹样查询系统</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: "Microsoft YaHei", sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh; padding: 20px;
+            display: flex; justify-content: center; align-items: center;
+        }
+        .container {
+            background: white; border-radius: 20px; padding: 40px 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1); max-width: 600px; width: 100%;
+            text-align: center;
+        }
+        .logo {
+            width: 80px; height: 80px; background: linear-gradient(45deg, #8c2c23, #d4a017);
+            border-radius: 50%; margin: 0 auto 20px; display: flex;
+            align-items: center; justify-content: center; color: white;
+            font-size: 24px; font-weight: bold;
+        }
+        h1 { color: #8c2c23; margin-bottom: 10px; font-size: 2.2em; }
+        .search-box { display: flex; gap: 10px; margin: 30px 0; }
+        #search-input { 
+            flex: 1; padding: 15px 20px; border: 2px solid #e0e0e0; 
+            border-radius: 12px; font-size: 16px; 
+        }
+        #search-button { 
+            padding: 15px 25px; background: #8c2c23; color: white; 
+            border: none; border-radius: 12px; cursor: pointer; font-size: 16px;
+        }
+        .result-container { display: none; margin-top: 30px; text-align: center; }
+        .pattern-image { 
+            max-width: 100%; height: 250px; object-fit: cover; 
+            border-radius: 10px; margin: 20px 0; border: 3px solid #e0e0e0;
+        }
+        .pattern-description { 
+            line-height: 1.6; color: #555; text-align: left; 
+            background: #f9f9f9; padding: 20px; border-radius: 10px;
+            border-left: 4px solid #8c2c23;
+        }
+        .hint { color: #666; font-size: 14px; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">纹</div>
+        <h1>寻纹觅祖</h1>
+        <p>探寻百家姓背后的传统纹样之美</p>
+        
+        <div class="search-box">
+            <input type="text" id="search-input" placeholder="请输入您的姓氏..." maxlength="10">
+            <button id="search-button">寻踪觅迹</button>
+        </div>
+        <p class="hint">支持常见百家姓查询，如：李、王、张、刘、陈、杨、赵等</p>
+        
+        <div class="result-container" id="result">
+            <h2 id="result-title"></h2>
+            <img class="pattern-image" id="pattern-image" src="" alt="传统纹样">
+            <div class="pattern-description" id="pattern-description"></div>
+        </div>
+    </div>
+
+    <script>
+        // 七种纹路图片链接配置 - 请替换为您从图床获得的真实链接
+        const imageHosting = {
+            dragon: 'https://i.ibb.co/PshcrN7v/dragon-pattern-jpg.webp',      // 龙纹
+            water: 'https://i.ibb.co/TxFN38Rq/water-pattern-jpg.webp',       // 水纹
+            swastika: 'https://i.ibb.co/M5JGbPvq/swastika-pattern-jpg.webp',  // 万字纹
+            fret: 'https://i.ibb.co/pv0zpLGg/fret-pattern-jpg.webp',     // 回字纹
+            cloud: 'https://i.ibb.co/9kZdPZ6q/cloud-pattern-jpg.webp',       // 云纹
+            ruyi: 'https://i.ibb.co/x8jxL3T2/ruyi-pattern-jpg.webp',     // 如意纹
+            default: 'https://i.ibb.co/prMSwyxC/default-pattern-jpg.webp'  // 默认纹样
+        };
+
+        // 百家姓与纹路匹配数据库（根据当前年份算法匹配）
+        const getPatternBySurname = (surname) => {
+            const currentYear = new Date().getFullYear();
+            const surnameHash = Array.from(surname).reduce((hash, char) => 
+                hash + char.charCodeAt(0), 0);
+            
+            const patternIndex = (surnameHash + currentYear) % 7;
+            
+            const patterns = [
+                { name: '龙纹', image: imageHosting.dragon, type: 'dragon' },
+                { name: '水纹', image: imageHosting.water, type: 'water' },
+                { name: '万字纹', image: imageHosting.swastika, type: 'swastika' },
+                { name: '回字纹', image: imageHosting.fret, type: 'fret' },
+                { name: '云纹', image: imageHosting.cloud, type: 'cloud' },
+                { name: '如意纹', image: imageHosting.ruyi, type: 'ruyi' },
+                { name: '龙纹', image: imageHosting.dragon, type: 'dragon' } // 龙纹重复一次增加概率
+            ];
+            
+            return patterns[patternIndex];
+        };
+
+        // 纹路描述库
+        const patternDescriptions = {
+            dragon: (surname) => `龙纹是中华民族最具代表性的传统纹样，象征着权威、尊贵和祥瑞。${surname}姓与龙纹相配，寓意家族如龙腾飞，世代昌盛。龙纹常见于皇家器物，体现尊贵气质。`,
+            water: (surname) => `水纹以流动的波浪曲线为特征，象征着生命之源、财源滚滚。${surname}姓配水纹，寓意家族如水流长，生生不息。水纹代表柔韧与包容，契合中华文化智慧。`,
+            swastika: (surname) => `万字纹是古老的吉祥符号，源自佛教，寓意万德吉祥、永恒不变。${surname}姓与万字纹结合，象征家族福泽绵长，吉祥如意。此纹样有千年历史底蕴。`,
+            fret: (surname) => `回字纹以连续的回旋线条构成，形似雷云，寓意绵延不绝、生生不息。${surname}姓配回字纹，代表家族传承有序，代代相传。此纹样彰显古朴厚重之美。`,
+            cloud: (surname) => `云纹以飘逸的云朵形态为特色，象征祥瑞、高升和吉祥。${surname}姓与云纹相配，寓意家族平步青云，福运连绵。云纹体现空灵飘逸的东方美学。`,
+            ruyi: (surname) => `如意纹取如意器物造型，寓意事事如意、心想事成。${surname}姓配如意纹，象征家族美满和谐，万事顺遂。如意纹承载美好祝愿的传统文化内涵。`
+        };
+
+        // 常见百家姓列表
+        const commonSurnames = ['李','王','张','刘','陈','杨','赵','黄','周','吴','徐','孙','胡','朱','高','林','何','郭','马','罗',
+            '梁','宋','郑','谢','韩','唐','冯','于','董','萧','程','曹','袁','邓','许','傅','沈','曾','彭','吕',
+            '苏','卢','蒋','蔡','贾','丁','魏','薛','叶','阎','余','潘','杜','戴','夏','锺','汪','田','任','姜',
+            '范','方','石','姚','谭','廖','邹','熊','金','陆','郝','孔','白','崔','康','毛','邱','秦','江','史',
+            '顾','侯','邵','孟','龙','万','段','雷','钱','汤','尹','黎','易','常','武','乔','贺','赖','龚','文'];
+
+        document.getElementById('search-button').addEventListener('click', function() {
+            const input = document.getElementById('search-input').value.trim();
+            if (!input) { 
+                alert('请输入您的姓氏'); 
+                return; 
+            }
+            
+            const surname = input.charAt(0);
+            const patternInfo = getPatternBySurname(surname);
+            const description = patternDescriptions[patternInfo.type] ? 
+                patternDescriptions[patternInfo.type](surname) : 
+                `${surname}姓蕴含着独特的文化底蕴，与此传统纹样相得益彰，彰显中华姓氏文化的博大精深。`;
+            
+            document.getElementById('result-title').textContent = `${surname}氏纹样：${patternInfo.name}`;
+            document.getElementById('pattern-image').src = patternInfo.image;
+            document.getElementById('pattern-description').textContent = description;
+            document.getElementById('result').style.display = 'block';
+        });
+
+        document.getElementById('search-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') document.getElementById('search-button').click();
+        });
+    </script>
+</body>
+</html>
